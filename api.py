@@ -1,8 +1,16 @@
 import pickle
 from recommenders import demographic
 
-infile = open('/Users/Faisal/Development/recommender-storage/model/dr.pickle', 'rb')
+infile = open('/Users/Faisal/Development/recommender-storage/models/dr.model', 'rb')
 
-demographic_recommender = pickle.load(infile)
+weighted_movies = pickle.load(infile)
 
-print(demographic_recommender.get_recommendation())
+dr = demographic.DemographicRecommender(weighted_movies)
+
+
+
+# print(dr.get_top_trending_movies())
+# print('-' * 50)
+# print(dr.get_top_popular_movies())
+
+# dr.get_top_movie_based_one_genre()
