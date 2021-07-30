@@ -61,3 +61,37 @@ def top_movies_by_genre(df, genre='Drama', k=10):
     movies_by_genres = movies_by_genres.sort_values('score', ascending=False)
 
     return [] if movies_by_genres is None else movies_by_genres.head(k)
+
+
+def get_similar_movies(model, title, k):
+    title = 'The Dark Knight Rises'
+    movies = model.copy()
+
+    print(len(movies.values))
+
+    # Import CountVectorizer and create the count matrix
+    from sklearn.feature_extraction.text import CountVectorizer
+    count = CountVectorizer(stop_words='english')
+    count_matrix = count.fit_transform(movies['soup'])
+
+    # Compute the Cosine Similarity matrix based on the count_matrix
+    from sklearn.metrics.pairwise import cosine_similarity
+    cosine_sim = cosine_similarity(count_matrix, count_matrix)
+
+    import pandas as pd
+    movies = movies.reset_index()
+    indices = pd.Series(movies.index, index=movies['title'])
+
+    # Get the index of the movie that matches the title
+    idx = indices[title]
+
+    # Get the pairwise similarity scores of all movies with that movie
+    sim_scores = list(enumerate(cosine_sim[idx]))
+
+    # Get the scores of the 10 most similar movies
+    sim_scores = sim_scores[1:11]
+
+    movie_indices = [i[0] for i in sim_scores]
+
+    # Return the top 10 most similar movies
+    return movies['title'].iloc[movie_indices]

@@ -56,5 +56,15 @@ def top_movies_by_genre(genre, k):
     return movies.to_json(orient='records')
 
 
+@app.route('/similar/<string:title>/<int:k>')
+@app.route('/similar/<string:title>', defaults={'k': 10})
+def top_similar_movies(title, k):
+    infile = open(const.VECTORIZER_MODEL, 'rb')
+    model = pickle.load(infile)
+    movies = service.get_similar_movies(model, title, k)
+    movies = [] if movies is None else movies
+    return movies.to_json(orient='records')
+
+
 if __name__ == '__main__':
     app.run()
