@@ -1,93 +1,91 @@
 def top_movies_by_language(df, lang='en', k=10):
-    c = df['vote_average'].mean()
-    m = df['vote_count'].quantile(.9)
+    # start processing with a copy of original data
+    candidates = df.copy()
 
-    def weighted_rating(x, m=m, c=c):
-        v = x['vote_count']
-        R = x['vote_average']
-        # Calculation based on the IMDB formula
-        return (v / (v + m) * R) + (m / (m + v) * c)
+    # import dependencies
+    from utilities import weighted_rating_supplier
 
-    movies_filter_by_language = df.copy().loc[df['language'] == lang]
-    movies_filter_by_language['score'] = movies_filter_by_language.apply(weighted_rating, axis=1)
-    trending_movies_by_language = movies_filter_by_language.sort_values('score', ascending=False)
+    # get weighted_rating calculator
+    weighted_rating = weighted_rating_supplier(df)
 
-    return [] if trending_movies_by_language is None else trending_movies_by_language.head(k)
+    # filter by specific language
+    candidates = candidates.loc[df['language'] == lang]
+    candidates['score'] = candidates.apply(weighted_rating, axis=1)
+    candidates = candidates.sort_values('score', ascending=False)
+
+    # return candidates
+    return [] if candidates is None else candidates.head(k)
 
 
 def top_movies_by_country(df, country='US', k=10):
+    # start processing with a copy of original data
+    candidates = df.copy()
+
+    # import dependencies
     from ast import literal_eval
+    from utilities import to_countries
 
-    def to_countries(x):
-        if isinstance(x, list):
-            names = [i['iso_3166_1'] for i in x]
-            return names
-        # Return empty list in case of missing/malformed data
-        return []
+    # convert json string genres to python boject
+    candidates['countries'] = candidates['countries'].apply(literal_eval)
+    candidates['countries'] = candidates['countries'].apply(to_countries)
 
-    movies_by_counties = df.copy()
-    movies_by_counties['countries'] = movies_by_counties['countries'].apply(literal_eval)
-    movies_by_counties['countries'] = movies_by_counties['countries'].apply(to_countries)
-    movies_by_counties = movies_by_counties[
-        movies_by_counties.loc[0:, 'countries'].apply(lambda row: country.upper() in row)]
+    # Filter movies by specific country
+    candidates = candidates[candidates.loc[0:, 'countries'].apply(lambda row: country.upper() in row)]
 
-    return [] if movies_by_counties is None else movies_by_counties.head(k)
+    # return candidates
+    return [] if candidates is None else candidates.head(k)
 
 
 def top_movies_by_genre(df, genre='Drama', k=10):
-    def to_genres(x):
-        if isinstance(x, list):
-            names = [i['name'] for i in x]
-            return names
-        # Return empty list in case of missing/malformed data
-        return []
+    # start processing with a copy of original data
+    candidates = df.copy()
 
-    c = df['vote_average'].mean()
-    m = df['vote_count'].quantile(.9)
-
-    def weighted_rating(x, m=m, c=c):
-        v = x['vote_count']
-        R = x['vote_average']
-        # Calculation based on the IMDB formula
-        return (v / (v + m) * R) + (m / (m + v) * c)
-
+    # import dependencies
     from ast import literal_eval
-    movies_by_genres = df.copy()
-    movies_by_genres['genres'] = movies_by_genres['genres'].apply(literal_eval)
-    movies_by_genres['genres'] = movies_by_genres['genres'].apply(to_genres)
+    from utilities import to_genres
+    from utilities import weighted_rating_supplier
+
+    # get weighted_rating calculator
+    weighted_rating = weighted_rating_supplier(df)
+
+    # convert json string genres to python boject
+    candidates['genres'] = candidates['genres'].apply(literal_eval)
+    candidates['genres'] = candidates['genres'].apply(to_genres)
 
     # Filter movies by specific genres
-    movies_by_genres = movies_by_genres[movies_by_genres.loc[0:, 'genres'].apply(lambda row: genre.title() in row)]
-    movies_by_genres['score'] = movies_by_genres.apply(weighted_rating, axis=1)
-    movies_by_genres = movies_by_genres.sort_values('score', ascending=False)
+    candidates = candidates[candidates.loc[0:, 'genres'].apply(lambda row: genre.title() in row)]
+    candidates['score'] = candidates.apply(weighted_rating, axis=1)
+    candidates = candidates.sort_values('score', ascending=False)
 
-    return [] if movies_by_genres is None else movies_by_genres.head(k)
+    # return candidates
+    return [] if candidates is None else candidates.head(k)
 
 
-def get_similar_movies(model, title, k):
-    movies = model.copy()
+def get_similar_movies(df, similarity_matrix, title, k):
+    # start processing with a copy of original data
+    candidates = df.copy()
 
-    # Import CountVectorizer and create the count matrix
-    from sklearn.feature_extraction.text import CountVectorizer
-    count = CountVectorizer(stop_words='english')
-    count_matrix = count.fit_transform(movies['soup'])
-
-    # Compute the Cosine Similarity matrix based on the count_matrix
-    from sklearn.metrics.pairwise import cosine_similarity
-    cosine_sim = cosine_similarity(count_matrix, count_matrix)
+    # # Import CountVectorizer and create the count matrix
+    # from sklearn.feature_extraction.text import CountVectorizer
+    # count = CountVectorizer(stop_words='english')
+    # count_matrix = count.fit_transform(candidates['soup'])
+    #
+    # # Compute the Cosine Similarity matrix based on the count_matrix
+    # from sklearn.metrics.pairwise import cosine_similarity
+    # cosine_sim = cosine_similarity(count_matrix, count_matrix)
 
     import pandas as pd
-    movies = movies.reset_index()
-    indices = pd.Series(movies.index, index=movies['title'])
+    candidates = candidates.reset_index()
+    indices = pd.Series(candidates.index, index=candidates['title'])
 
     # Get the index of the movie that matches the title
     try:
         idx = indices[title]
     except:
-        return movies[['id','title']].head(k)
+        return candidates[['id','title']].head(k)
 
     # Get the pairwise similarity scores of all movies with that movie
-    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = list(enumerate(similarity_matrix[idx]))
 
     # Sort the movies based on the similarity scores
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
@@ -98,4 +96,4 @@ def get_similar_movies(model, title, k):
     movie_indices = [i[0] for i in sim_scores]
 
     # Return the top 10 most similar movies
-    return movies[['id','title']].iloc[movie_indices]
+    return candidates[['id','title']].iloc[movie_indices]

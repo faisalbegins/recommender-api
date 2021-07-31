@@ -19,7 +19,7 @@ def reload_models():
 @app.route('/trending/score/<int:k>')
 @app.route('/trending/score', defaults={'k': 10})
 def top_trending_movies(k):
-    movies = app.trending_model
+    movies = app.trending_data
     movies = movies.head(k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
@@ -28,35 +28,35 @@ def top_trending_movies(k):
 @app.route('/trending/popularity/<int:k>')
 @app.route('/trending/popularity', defaults={'k': 10})
 def top_popular_movies(k):
-    movies = app.popular_model
+    movies = app.popular_data
     movies = movies.head(k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
 
 
 @app.route('/trending/language/<string:lang>/<int:k>/')
+@app.route('/trending/language/<string:lang>', defaults={'k': 10})
 @app.route('/trending/language', defaults={'k': 10, 'lang': 'en'})
 def top_movies_by_language(lang, k):
-    generic_model = app.generic_model
-    movies = recommender.top_movies_by_language(generic_model, lang, k)
+    movies = recommender.top_movies_by_language(app.generic_data, lang, k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
 
 
 @app.route('/trending/country/<string:country>/<int:k>/')
+@app.route('/trending/country/<string:country>', defaults={'k': 10})
 @app.route('/trending/country', defaults={'k': 10, 'country': 'US'})
 def top_movies_by_country(country, k):
-    generic_model = app.generic_model
-    movies = recommender.top_movies_by_country(generic_model, country, k)
+    movies = recommender.top_movies_by_country(app.generic_data, country, k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
 
 
 @app.route('/trending/genre/<string:genre>/<int:k>/')
+@app.route('/trending/genre/<string:genre>', defaults={'k': 10})
 @app.route('/trending/genre', defaults={'k': 10, 'genre': 'Drama'})
 def top_movies_by_genre(genre, k):
-    generic_model = app.generic_model
-    movies = recommender.top_movies_by_genre(generic_model, genre, k)
+    movies = recommender.top_movies_by_genre(app.generic_data, genre, k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
 
@@ -64,8 +64,7 @@ def top_movies_by_genre(genre, k):
 @app.route('/similar/<string:title>/<int:k>')
 @app.route('/similar/<string:title>', defaults={'k': 10})
 def top_similar_movies(title, k):
-    model = app.vectorize_model
-    movies = recommender.get_similar_movies(model, title, k)
+    movies = recommender.get_similar_movies(app.content_based_data, app.similarity_matrix, title, k)
     movies = [] if movies is None else movies
     return movies.to_json(orient='records')
 
