@@ -97,3 +97,19 @@ def get_similar_movies(df, similarity_matrix, title, k):
 
     # Return the top 10 most similar movies
     return candidates[['id','title']].iloc[movie_indices]
+
+
+def get_personalized_movies_svd(df, user, k):
+    # start processing with a copy of original data
+    candidates = df.copy()
+
+    # filter data by user
+    candidates = candidates.loc[df['user'] == user]
+    if len(candidates.index) == 0:
+        return []
+
+    # sort by predicted value
+    candidates = candidates.sort_values('prediction', ascending=False)
+
+    # take k number of movies and return
+    return candidates.head(k)

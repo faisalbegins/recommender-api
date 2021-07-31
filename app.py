@@ -69,5 +69,13 @@ def top_similar_movies(title, k):
     return movies.to_json(orient='records')
 
 
+@app.route('/personalized/svd/<int:user>/<int:k>')
+@app.route('/personalized/svd/<int:user>', defaults={'k': 5})
+def top_personalized_movies_svd(user, k):
+    movies = recommender.get_personalized_movies_svd(app.svd_lookup, user, k)
+    movies = [] if movies is None else movies
+    return movies.to_json(orient='records')
+
+
 if __name__ == '__main__':
     app.run()
