@@ -28,7 +28,8 @@ def top_movies_by_country(df, country='US', k=10):
     movies_by_counties = df.copy()
     movies_by_counties['countries'] = movies_by_counties['countries'].apply(literal_eval)
     movies_by_counties['countries'] = movies_by_counties['countries'].apply(to_countries)
-    movies_by_counties = movies_by_counties[movies_by_counties.loc[0:, 'countries'].apply(lambda row: country.upper() in row)]
+    movies_by_counties = movies_by_counties[
+        movies_by_counties.loc[0:, 'countries'].apply(lambda row: country.upper() in row)]
 
     return [] if movies_by_counties is None else movies_by_counties.head(k)
 
@@ -64,10 +65,7 @@ def top_movies_by_genre(df, genre='Drama', k=10):
 
 
 def get_similar_movies(model, title, k):
-    title = 'The Dark Knight Rises'
     movies = model.copy()
-
-    print(len(movies.values))
 
     # Import CountVectorizer and create the count matrix
     from sklearn.feature_extraction.text import CountVectorizer
@@ -83,10 +81,16 @@ def get_similar_movies(model, title, k):
     indices = pd.Series(movies.index, index=movies['title'])
 
     # Get the index of the movie that matches the title
-    idx = indices[title]
+    try:
+        idx = indices[title]
+    except:
+        return movies[['id','title']].head(k)
 
     # Get the pairwise similarity scores of all movies with that movie
     sim_scores = list(enumerate(cosine_sim[idx]))
+
+    # Sort the movies based on the similarity scores
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
     # Get the scores of the 10 most similar movies
     sim_scores = sim_scores[1:11]
@@ -94,4 +98,4 @@ def get_similar_movies(model, title, k):
     movie_indices = [i[0] for i in sim_scores]
 
     # Return the top 10 most similar movies
-    return movies['title'].iloc[movie_indices]
+    return movies[['id','title']].iloc[movie_indices]
