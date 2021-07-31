@@ -1,7 +1,7 @@
 from flask import Flask
 import pickle
 import constants as const
-import service
+import recommender
 
 app = Flask(__name__)
 
@@ -31,7 +31,7 @@ def top_popular_movies(k):
 def top_movies_by_language(lang, k):
     infile = open(const.GENERIC_MODEL, 'rb')
     generic_model = pickle.load(infile)
-    movies = service.top_movies_by_language(generic_model, lang, k)
+    movies = recommender.top_movies_by_language(generic_model, lang, k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
 
@@ -41,7 +41,7 @@ def top_movies_by_language(lang, k):
 def top_movies_by_country(country, k):
     infile = open(const.GENERIC_MODEL, 'rb')
     generic_model = pickle.load(infile)
-    movies = service.top_movies_by_country(generic_model, country, k)
+    movies = recommender.top_movies_by_country(generic_model, country, k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
 
@@ -51,7 +51,7 @@ def top_movies_by_country(country, k):
 def top_movies_by_genre(genre, k):
     infile = open(const.GENERIC_MODEL, 'rb')
     generic_model = pickle.load(infile)
-    movies = service.top_movies_by_genre(generic_model, genre, k)
+    movies = recommender.top_movies_by_genre(generic_model, genre, k)
     movies = [] if movies is None else movies[['id', 'title']]
     return movies.to_json(orient='records')
 
@@ -61,7 +61,7 @@ def top_movies_by_genre(genre, k):
 def top_similar_movies(title, k):
     infile = open(const.VECTORIZER_MODEL, 'rb')
     model = pickle.load(infile)
-    movies = service.get_similar_movies(model, title, k)
+    movies = recommender.get_similar_movies(model, title, k)
     movies = [] if movies is None else movies
     return movies.to_json(orient='records')
 
