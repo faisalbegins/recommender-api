@@ -1,6 +1,7 @@
-TRENDING_DATA = '/Users/Faisal/Development/recommender-storage/models/trending.data'
-POPULAR_DATA = '/Users/Faisal/Development/recommender-storage/models/popular.data'
-GENERIC_DATA = '/Users/Faisal/Development/recommender-storage/models/generic.data'
-CONTENT_BASED_DATA = '/Users/Faisal/Development/recommender-storage/models/content_based.data'
-SIMILARITY_MATRIX = '/Users/Faisal/Development/recommender-storage/models/similarity.matrix'
-PERSONALIZED_SVD_DATA = '/Users/Faisal/Development/recommender-storage/models/svd_lookup.data'
+import os
+TRENDING_DATA = f'{os.environ.get("DATA_ROOT_DIR")}/trending.data'
+POPULAR_DATA = f'{os.environ.get("DATA_ROOT_DIR")}/popular.data'
+GENERIC_DATA = f'{os.environ.get("DATA_ROOT_DIR")}/generic.data'
+CONTENT_BASED_DATA = f'{os.environ.get("DATA_ROOT_DIR")}/content_based.data'
+SIMILARITY_MATRIX = f'{os.environ.get("DATA_ROOT_DIR")}/similarity.matrix'
+PERSONALIZED_SVD_DATA = f'{os.environ.get("DATA_ROOT_DIR")}/svd_lookup.data'
