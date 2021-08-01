@@ -77,5 +77,10 @@ def top_personalized_movies_svd(user, k):
     return movies.to_json(orient='records')
 
 
+@app.route('/personalized/svd/raw/<int:user>/<int:movie>')
+def predict_rating(user, movie):
+    return recommender.get_prediction_svd(app.svd_raw, user, movie)
+
+
 if __name__ == '__main__':
     app.run()

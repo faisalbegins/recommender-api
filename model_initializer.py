@@ -6,10 +6,12 @@ def initialize(app):
             open(const.GENERIC_DATA, 'rb') as generic_file, \
             open(const.CONTENT_BASED_DATA, 'rb') as content_based_file, \
             open(const.SIMILARITY_MATRIX, 'rb') as similarity_file, \
+            open(const.PERSONALIZED_SVD_RAW, 'rb') as svd_raw_file, \
             open(const.PERSONALIZED_SVD_DATA, 'rb') as svd_lookup_file:
         app.trending_data = pickle.load(trending_file)
         app.popular_data = pickle.load(popular_file)
         app.generic_data = pickle.load(generic_file)
         app.content_based_data = pickle.load(content_based_file)
         app.similarity_matrix = pickle.load(similarity_file)
+        app.svd_raw = pickle.load(svd_raw_file)
         app.svd_lookup = pickle.load(svd_lookup_file)

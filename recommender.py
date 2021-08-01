@@ -113,3 +113,8 @@ def get_personalized_movies_svd(df, user, k):
 
     # take k number of movies and return
     return candidates.head(k)
+
+
+def get_prediction_svd(svd, user, movie):
+    prediction = svd.predict(user, movie).est
+    return str(prediction)
