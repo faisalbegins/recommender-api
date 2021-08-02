@@ -84,8 +84,9 @@ def predict_rating(user, movie):
 
 @app.route('/personalized/ncf/<int:user>')
 def top_personalized_movies_ncf(user):
-    print(recommender.get_personalized_movies_ncf(app, user))
-    return ""
+    movies = recommender.get_personalized_movies_ncf(app, user)
+    movies = [] if movies is None else movies
+    return movies.to_json(orient='records')
 
 
 if __name__ == '__main__':

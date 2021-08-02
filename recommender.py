@@ -96,7 +96,7 @@ def get_similar_movies(df, similarity_matrix, title, k):
     movie_indices = [i[0] for i in sim_scores]
 
     # Return the top 10 most similar movies
-    return candidates[['id','title']].iloc[movie_indices]
+    return candidates[['id', 'title']].iloc[movie_indices]
 
 
 def get_personalized_movies_svd(df, user, k):
@@ -128,42 +128,14 @@ def get_personalized_movies_ncf(app, user):
     movie_encoder = app.movie_encoder
     movie_decoder = app.movie_decoder
     user_encoder = app.user_encoder
-
-    user_id = movie_lens_ratings.userId.sample(1).iloc[0]
-    movies_watched_by_user = movie_lens_ratings[movie_lens_ratings.userId == user_id]
-    movies_not_watched = movie_lens_movies[
-        ~movie_lens_movies["movieId"].isin(movies_watched_by_user.movieId.values)
-    ]["movieId"]
-    movies_not_watched = list(
-        set(movies_not_watched).intersection(set(movie_encoder.keys()))
-    )
+    movies_watched_by_user = movie_lens_ratings[movie_lens_ratings.userId == user]
+    movies_not_watched = movie_lens_movies[~movie_lens_movies["movieId"].isin(movies_watched_by_user.movieId.values)]["movieId"]
+    movies_not_watched = list(set(movies_not_watched).intersection(set(movie_encoder.keys())))
     movies_not_watched = [[movie_encoder.get(x)] for x in movies_not_watched]
-    user_encoder = user_encoder.get(user_id)
-    user_movie_array = np.hstack(
-        ([[user_encoder]] * len(movies_not_watched), movies_not_watched)
-    )
+    user_encoder = user_encoder.get(user)
+    user_movie_array = np.hstack(([[user_encoder]] * len(movies_not_watched), movies_not_watched))
     ratings = model.predict(user_movie_array).flatten()
     top_ratings_indices = ratings.argsort()[-10:][::-1]
-    recommended_movie_ids = [
-        movie_decoder.get(movies_not_watched[x][0]) for x in top_ratings_indices
-    ]
-
-    print("Showing recommendations for user: {}".format(user_id))
-    print("====" * 9)
-    print("Movies with high ratings from user")
-    print("----" * 8)
-    top_movies_user = (
-        movies_watched_by_user.sort_values(by="rating", ascending=False)
-            .head(5)
-            .movieId.values
-    )
-    movie_df_rows = movie_lens_movies[movie_lens_movies["movieId"].isin(top_movies_user)]
-    for row in movie_df_rows.itertuples():
-        print(row.title, ":", row.genres)
-
-    print("----" * 8)
-    print("Top 10 movie recommendations")
-    print("----" * 8)
+    recommended_movie_ids = [movie_decoder.get(movies_not_watched[x][0]) for x in top_ratings_indices]
     recommended_movies = movie_lens_movies[movie_lens_movies["movieId"].isin(recommended_movie_ids)]
-    for row in recommended_movies.itertuples():
-        print(row.title, ":", row.genres)
+    return recommended_movies[['movieId', 'title']]
