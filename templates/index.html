@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <title>FlipMovie</title>
+</head>
+<body>
+<div class="container">
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">FlipMovie</a>
+            <div class="d-flex">
+                <select class="form-select me-2 country" aria-label="Default select">
+                    <option value="us">United States</option>
+                    <option value="gb">Great Britain</option>
+                    <option value="mx">Mexico</option>
+                    <option value="fr">France</option>
+                    <option value="nz">New Zealand</option>
+                    <option value="ca">Canada</option>
+                    <option value="jp">Japan</option>
+                    <option value="au">Australia</option>
+                    <option value="de">Germany</option>
+                </select>
+                <select class="form-select me-2 genre" aria-label="Default select">
+                    <option value="Action">Action</option>
+                    <option value="Drama">Drama</option>
+                    <option value="Adventure">Adventure</option>
+                    <option value="Animation">Animation</option>
+                    <option value="Science Fiction">Science Fiction</option>
+                </select>
+                <select class="form-select user" aria-label="Default select">
+                    <option value="1">Faisal</option>
+                    <option value="10">Mustafa</option>
+                    <option value="23">Obama</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+</div>
+<div class="container">
+    <h3 class="text-white mt-3 mb-3">Trending Now</h3>
+    <div class="row" id="trending"></div>
+    <h3 class="text-white mt-3 mb-3">Most Popular</h3>
+    <div class="row" id="popular"></div>
+    <h3 class="text-white mt-3 mb-3">Top 6 in <span id="country-title">US</span></h3>
+    <div class="row" id="country"></div>
+    <h3 class="text-white mt-3 mb-3">Top 6 in <span id="genre-title">Action</span></h3>
+    <div class="row" id="genre"></div>
+    <h3 class="text-white mt-3 mb-3">Similar Movies</h3>
+    <div class="row">
+        <div class="col-2" id="similar-1" data-name="Star Wars">
+            <div class="card">
+                <img src="https://image.tmdb.org/t/p/original/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg" class="card-img-top" alt="Star Wars">
+                <div class="card-body">
+                    <h6 class="card-title small text-dark">Star Wars</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-2" id="similar-2" data-name="Up">
+            <div class="card">
+                <img src="https://image.tmdb.org/t/p/original/eAdO0qa9m0NFSVLZ26PvCwmPlsr.jpg" class="card-img-top" alt="Up">
+                <div class="card-body">
+                    <h6 class="card-title small text-dark">Up</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-2" id="similar-3" data-name="Shin Godzilla">
+            <div class="card">
+                <img src="https://image.tmdb.org/t/p/original/cJlEv3xULhBt6WvjYEntBg3ReEw.jpg" class="card-img-top" alt="Shin Godzilla">
+                <div class="card-body">
+                    <h6 class="card-title small text-dark">Shin Godzilla</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-2" id="similar-4" data-name="Forrest Gump">
+            <div class="card">
+                <img src="https://image.tmdb.org/t/p/original/h5J4W4veyxMXDMjeNxZI46TsHOb.jpg" class="card-img-top" alt="Forrest Gump">
+                <div class="card-body">
+                    <h6 class="card-title small text-dark">Forrest Gump</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-2" id="similar-5" data-name="Inception">
+            <div class="card">
+                <img src="https://image.tmdb.org/t/p/original/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg" class="card-img-top" alt="Inception">
+                <div class="card-body">
+                    <h6 class="card-title small text-dark">Inception</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-2" id="similar-6" data-name="John Carter">
+            <div class="card">
+                <img src="https://image.tmdb.org/t/p/original/7GSSyUUgUEXm1rhmiPGSRuKoqnK.jpg" class="card-img-top" alt="John Carter">
+                <div class="card-body">
+                    <h6 class="card-title small text-dark">John Carter</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h3 class="text-white mt-3 mb-3 text-muted" id="similar-title"></h3>
+    <div class="row mt-3" id="similar-movies"></div>
+    <h3 class="text-white mt-3 mb-3">Personalized for <span id="personalized-title">Faisal</span></h3>
+    <div class="row" id="personalized"></div>
+    <footer>
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2)">© 2021</div>
+    </footer>
+</div>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.get("/trending/score/6", function (data, status) {
+            let datum = JSON.parse(data);
+            let popular = $("#trending");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="trending-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                popular.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#trending-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+
+        $.get("/trending/popularity/6", function (data, status) {
+            let datum = JSON.parse(data);
+            let popular = $("#popular");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="popular-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                popular.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#popular-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+
+        $.get("/trending/country/US/6", function (data, status) {
+            let datum = JSON.parse(data);
+            let language = $("#country");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="country-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                language.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#country-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+
+        $('.country').change(function () {
+            $("#country").html("");
+            let country = this.value;
+            let selected_country_value = $( ".country option:selected" ).text()
+            $('#country-title').html(selected_country_value)
+            let langUrl = "/trending/country/" + country + "/6";
+
+            $.get(langUrl, function (data, status) {
+            let datum = JSON.parse(data);
+            let language = $("#country");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="country-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                language.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#country-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $.get("/trending/genre/Action/6", function (data, status) {
+            let datum = JSON.parse(data);
+            let language = $("#genre");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="genre-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                language.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#genre-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+
+        $('.genre').change(function () {
+            $("#genre").html("");
+            let genre = this.value;
+            let selected_genre_value = $( ".genre option:selected" ).text()
+            $('#genre-title').html(selected_genre_value)
+            let genreUrl = "/trending/genre/" + genre + "/6";
+
+            $.get(genreUrl, function (data, status) {
+            let datum = JSON.parse(data);
+            let language = $("#genre");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="genre-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                language.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#genre-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $.get("/personalized/svd/1/6", function (data, status) {
+            let datum = JSON.parse(data);
+            let user = $("#personalized");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="personalized-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                user.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['movie'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#personalized-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+
+        $('.user').change(function () {
+            $("#personalized").html("");
+            let user = this.value;
+            let selected_user_value = $( ".user option:selected" ).text()
+            $('#personalized-title').html(selected_user_value)
+            let userUrl = "/personalized/svd/" + user + "/6";
+
+            $.get(userUrl, function (data, status) {
+            let datum = JSON.parse(data);
+            let user = $("#personalized");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="personalized-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                user.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['movie'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#personalized-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $('#similar-1').css({'cursor': 'pointer'});
+        $('#similar-1').click(function () {
+            $("#similar-title").html("");
+            $("#similar-movies").html("");
+            let movie = $(this).attr("data-name");
+            $("#similar-title").html("Similar to " + movie);
+            let url = "/similar/" + movie + "/6";
+
+            $.get(url, function (data, status) {
+            let datum = JSON.parse(data);
+            let similar_movies = $("#similar-movies");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="similar-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                similar_movies.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#similar-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $('#similar-2').css({'cursor': 'pointer'});
+        $('#similar-2').click(function () {
+            $("#similar-movies").html("");
+            $("#similar-movies").html("");
+            let movie = $(this).attr("data-name");
+            $("#similar-title").html("Similar to " + movie);
+            let url = "/similar/" + movie + "/6";
+
+            $.get(url, function (data, status) {
+            let datum = JSON.parse(data);
+            let similar_movies = $("#similar-movies");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="similar-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                similar_movies.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#similar-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $('#similar-3').css({'cursor': 'pointer'});
+        $('#similar-3').click(function () {
+            $("#similar-movies").html("");
+            $("#similar-title").html("");
+            let movie = $(this).attr("data-name");
+            $("#similar-title").html("Similar to " + movie);
+            let url = "/similar/" + movie + "/6";
+
+            $.get(url, function (data, status) {
+            let datum = JSON.parse(data);
+            let similar_movies = $("#similar-movies");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="similar-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                similar_movies.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#similar-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $('#similar-4').css({'cursor': 'pointer'});
+        $('#similar-4').click(function () {
+            $("#similar-movies").html("");
+            $("#similar-title").html("");
+            let movie = $(this).attr("data-name");
+            $("#similar-title").html("Similar to " + movie);
+            let url = "/similar/" + movie + "/6";
+
+            $.get(url, function (data, status) {
+            let datum = JSON.parse(data);
+            let similar_movies = $("#similar-movies");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="similar-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                similar_movies.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#similar-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $('#similar-5').css({'cursor': 'pointer'});
+        $('#similar-5').click(function () {
+            $("#similar-movies").html("");
+            $("#similar-title").html("");
+            let movie = $(this).attr("data-name");
+            $("#similar-title").html("Similar to " + movie);
+            let url = "/similar/" + movie + "/6";
+
+            $.get(url, function (data, status) {
+            let datum = JSON.parse(data);
+            let similar_movies = $("#similar-movies");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="similar-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                similar_movies.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#similar-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+
+        $('#similar-6').css({'cursor': 'pointer'});
+        $('#similar-6').click(function () {
+            $("#similar-movies").html("");
+            $("#similar-title").html("");
+            let movie = $(this).attr("data-name");
+            $("#similar-title").html("Similar to " + movie);
+            let url = "/similar/" + movie + "/6";
+
+            $.get(url, function (data, status) {
+            let datum = JSON.parse(data);
+            let similar_movies = $("#similar-movies");
+            for (let i = 0; i < datum.length; i++) {
+                let card = '<div class="col-2">' +
+                    '<div class="card">' +
+                    '<img src="https://via.placeholder.com/222x333.png" class="card-img-top" id="similar-image' + i + '" alt="' + datum[i]['title'] + '">' +
+                    '<div class="card-body">' +
+                    '<h6 class="card-title small text-dark">' + datum[i]['title'] + '</h6>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                similar_movies.append(card)
+
+                $.ajax({
+                    'async': true,
+                    'url': "https://api.themoviedb.org/3/movie/" + datum[i]['id'] + "?api_key=89c600bbca14926eb3e4e6c836b2e000",
+                    'context': {'id': i}
+                }).done(function (data) {
+                    $("#similar-image" + this.id).attr('src', 'https://image.tmdb.org/t/p/original' + data['poster_path']);
+                });
+            }
+        });
+        });
+    });
+</script>
+</body>
+</html>

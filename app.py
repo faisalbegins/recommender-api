@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 
 import model_initializer
 import recommender
@@ -7,6 +7,11 @@ app = Flask(__name__)
 
 # initialize all the model during app startup
 model_initializer.initialize(app)
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
 # trigger model initialization externally
