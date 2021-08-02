@@ -8,6 +8,7 @@ RUN conda install -c conda-forge scikit-learn
 RUN conda install -c conda-forge matplotlib
 RUN conda install -c conda-forge scikit-surprise
 RUN conda install -c conda-forge flask
+RUN conda install -c conda-forge keras
 
 # create working directory
 WORKDIR /app
