@@ -82,5 +82,11 @@ def predict_rating(user, movie):
     return recommender.get_prediction_svd(app.svd_raw, user, movie)
 
 
+@app.route('/personalized/ncf/<int:user>')
+def top_personalized_movies_ncf(user):
+    print(recommender.get_personalized_movies_ncf(app, user))
+    return ""
+
+
 if __name__ == '__main__':
     app.run()
