@@ -1,0 +1,13 @@
+body {
+    background-color: #000000;
+}
+.card-body {
+    padding: 1rem .5rem;
+}
+.card-img-top {
+    min-height: 246px;
+}
+h6.card-title {
+    min-height: 48px;
+    margin-bottom: 0;
+}
