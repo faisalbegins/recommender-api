@@ -120,7 +120,7 @@ def get_prediction_svd(svd, user, movie):
     return str(prediction)
 
 
-def get_personalized_movies_ncf(app, user):
+def get_personalized_movies_ncf(app, user, k):
     import numpy as np
     model = app.neural_network
     movie_lens_movies = app.movie_lens_movies
@@ -135,7 +135,9 @@ def get_personalized_movies_ncf(app, user):
     user_encoder = user_encoder.get(user)
     user_movie_array = np.hstack(([[user_encoder]] * len(movies_not_watched), movies_not_watched))
     ratings = model.predict(user_movie_array).flatten()
-    top_ratings_indices = ratings.argsort()[-10:][::-1]
+    top_ratings_indices = ratings.argsort()[-k:][::-1]
     recommended_movie_ids = [movie_decoder.get(movies_not_watched[x][0]) for x in top_ratings_indices]
     recommended_movies = movie_lens_movies[movie_lens_movies["movieId"].isin(recommended_movie_ids)]
-    return recommended_movies[['movieId', 'title']]
+    recommended_movies = recommended_movies[['movieId', 'title']]
+    recommended_movies.columns = ['id', 'title']
+    return recommended_movies[['id', 'title']]
